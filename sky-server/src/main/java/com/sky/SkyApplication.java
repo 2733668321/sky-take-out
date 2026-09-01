@@ -8,7 +8,7 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 @SpringBootApplication
 @EnableTransactionManagement //开启注解方式的事务管理
 @Slf4j
-//测试2
+//测试3
 public class SkyApplication {
     public static void main(String[] args) {
         SpringApplication.run(SkyApplication.class, args);
