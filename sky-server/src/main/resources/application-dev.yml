@@ -11,3 +11,8 @@ sky:
     access-key-id: ${OSS_ACCESS_KEY_ID}
     access-key-secret: ${OSS_ACCESS_KEY_SECRET}
     bucket-name: 2733668321
+  redis:
+    host: localhost
+    port: 6379
+    password: 0352430YSYS
+    database: 0
