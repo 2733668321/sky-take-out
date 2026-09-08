@@ -38,21 +38,21 @@ public class ShoppingCartServiceImpl implements ShoppingCartService {
         List<ShoppingCart> list = shoppingCartMapper.list(shoppingCart);
 
         //如果存在，则更新数量
-        if(list != null && !list.isEmpty()){
+        if (list != null && !list.isEmpty()) {
             ShoppingCart cart = list.get(0);
             cart.setNumber(cart.getNumber() + 1);
             shoppingCartMapper.updateNumberById(cart);
-        }else{
+        } else {
             //如果不存在，则新增
             //判断是菜品还是套餐
             Long dishId = shoppingCartDTO.getDishId();
 
-            if(dishId != null){
+            if (dishId != null) {
                 Dish dish = dishMapper.getById(dishId);
                 shoppingCart.setName(dish.getName());
                 shoppingCart.setImage(dish.getImage());
                 shoppingCart.setAmount(dish.getPrice());
-            }else{
+            } else {
                 Long setmealId = shoppingCartDTO.getSetmealId();
                 Setmeal setmeal = setmealMapper.getById(setmealId);
                 shoppingCart.setName(setmeal.getName());
@@ -63,5 +63,14 @@ public class ShoppingCartServiceImpl implements ShoppingCartService {
             shoppingCart.setCreateTime(LocalDateTime.now());
             shoppingCartMapper.insert(shoppingCart);
         }
+    }
+
+    @Override
+    public List<ShoppingCart> list() {
+        Long userId = BaseContext.getCurrentId();
+        ShoppingCart shoppingCart = ShoppingCart.builder()
+                .userId(userId)
+                .build();
+        return shoppingCartMapper.list(shoppingCart);
     }
 }
