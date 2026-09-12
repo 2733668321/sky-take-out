@@ -4,6 +4,7 @@ import com.sky.entity.Orders;
 import com.sky.mapper.OrderMapper;
 import com.sky.mapper.UserMapper;
 import com.sky.service.ReportService;
+import com.sky.vo.OrderReportVO;
 import com.sky.vo.TurnoverReportVO;
 import com.sky.vo.UserReportVO;
 import lombok.extern.slf4j.Slf4j;
@@ -32,12 +33,7 @@ public class ReportServiceImpl implements ReportService {
 
     @Override
     public TurnoverReportVO getTurnoverStatistics(LocalDate begin, LocalDate end) {
-        List<LocalDate> dateList = new ArrayList<>();
-
-        do {
-            dateList.add(begin);
-            begin = begin.plusDays(1);
-        } while (!begin.isAfter(end));
+        List<LocalDate> dateList = getDatesBetween(begin, end);
 
         String dateListStr = StringUtils.join(dateList, ",");
 
@@ -68,12 +64,7 @@ public class ReportServiceImpl implements ReportService {
 
     @Override
     public UserReportVO getUserStatistics(LocalDate begin, LocalDate end) {
-        List<LocalDate> dateList = new ArrayList<>();
-
-        do {
-            dateList.add(begin);
-            begin = begin.plusDays(1);
-        } while (!begin.isAfter(end));
+        List<LocalDate> dateList = getDatesBetween(begin, end);
 
         String dateListStr = StringUtils.join(dateList, ",");
 
@@ -106,5 +97,66 @@ public class ReportServiceImpl implements ReportService {
                 .totalUserList(totalUserListStr)
                 .newUserList(newUserListStr)
                 .build();
+    }
+
+    @Override
+    public OrderReportVO getOrderStatistics(LocalDate begin, LocalDate end) {
+        List<LocalDate> dateList = getDatesBetween(begin, end);
+
+        String dateListStr = StringUtils.join(dateList, ",");
+
+        //每天订单总数
+        List<Integer> orderCountList = new ArrayList<>();
+        //每天有效订单数
+        List<Integer> validOrderCountList = new ArrayList<>();
+
+        for (LocalDate date : dateList) {
+            //查询date日期新增用户数量和总用户数量
+            LocalDateTime beginTime = LocalDateTime.of(date, LocalTime.MIN);
+            LocalDateTime endTime = LocalDateTime.of(date, LocalTime.MAX);
+            Integer totalOrderCount = getOrderCount(beginTime, endTime, null);
+            Integer validOrderCount = getOrderCount(beginTime, endTime, Orders.COMPLETED);
+
+            orderCountList.add(totalOrderCount);
+            validOrderCountList.add(validOrderCount);
+        }
+        String orderCountListStr = StringUtils.join(orderCountList, ",");
+        String validOrderCountListStr = StringUtils.join(validOrderCountList, ",");
+
+        Integer totalOrderCount = orderCountList.stream().mapToInt(Integer::intValue).sum();
+        Integer validOrderCount = validOrderCountList.stream().mapToInt(Integer::intValue).sum();
+
+        double orderCompletionRate = 0.0;
+        if (totalOrderCount != 0) {
+            orderCompletionRate = validOrderCount.doubleValue() / totalOrderCount;
+        }
+
+        return OrderReportVO
+                .builder()
+                .dateList(dateListStr)
+                .orderCountList(orderCountListStr)
+                .validOrderCountList(validOrderCountListStr)
+                .totalOrderCount(totalOrderCount)
+                .validOrderCount(validOrderCount)
+                .orderCompletionRate(orderCompletionRate)
+                .build();
+
+    }
+
+    private List<LocalDate> getDatesBetween(LocalDate begin, LocalDate end) {
+        List<LocalDate> dates = new ArrayList<>();
+        do {
+            dates.add(begin);
+            begin = begin.plusDays(1);
+        } while (!begin.isAfter(end));
+        return dates;
+    }
+
+    private Integer getOrderCount(LocalDateTime begin, LocalDateTime end, Integer status) {
+        Map map = new HashMap();
+        map.put("begin", begin);
+        map.put("end", end);
+        map.put("status", status);
+        return orderMapper.countByMap(map);
     }
 }
