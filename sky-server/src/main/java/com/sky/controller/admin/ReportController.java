@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.servlet.http.HttpServletResponse;
 import java.time.LocalDate;
 
 @RestController
@@ -28,6 +29,7 @@ public class ReportController {
 
     /**
      * 营业额统计
+     *
      * @param begin
      * @param end
      * @return
@@ -43,6 +45,7 @@ public class ReportController {
 
     /**
      * 用户统计
+     *
      * @param begin
      * @param end
      * @return
@@ -58,6 +61,7 @@ public class ReportController {
 
     /**
      * 统计指定区间内的订单数据
+     *
      * @param begin
      * @param end
      * @return
@@ -73,6 +77,7 @@ public class ReportController {
 
     /**
      * 销量排名Top10
+     *
      * @return
      */
     @GetMapping("/top10")
@@ -82,5 +87,15 @@ public class ReportController {
             @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate end) {
         log.info("销量排名Top10:{}{}", begin, end);
         return Result.success(reportService.getSalesTop10(begin, end));
+    }
+
+    /**
+     * 数据导出
+     * @param response
+     */
+    @GetMapping("/export")
+    @ApiOperation("数据导出")
+    public void export(HttpServletResponse response) {
+        reportService.export(response);
     }
 }
